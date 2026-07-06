@@ -1,4 +1,4 @@
-# Proprietaire : Alexis (Cyber) - detection de menaces runtime (CNCF Graduated)
+# Propriétaire : Alexis (Cyber) - détection de menaces runtime (CNCF Graduated)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -19,8 +19,8 @@ spec:
         falcosidekick:
           enabled: false
           # TODO (Alexis) : activer + brancher sur le service IA (webhook)
-          # pour transformer les alertes runtime en evenements exploitables
-          # par la boucle de remediation.
+          # pour transformer les alertes runtime en événements exploitables
+          # par la boucle de remédiation.
   destination:
     server: "https://kubernetes.default.svc"
     namespace: falco

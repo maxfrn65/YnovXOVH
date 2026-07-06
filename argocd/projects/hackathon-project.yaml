@@ -5,8 +5,8 @@ metadata:
   namespace: argocd
 spec:
   description: >-
-    Projet Argo CD - Hackathon OVHcloud x Ynov (Equipe 9).
-    Chaine d'audit et de remediation GitOps securisee sur Kubernetes.
+    Projet Argo CD - Hackathon OVHcloud x Ynov (Équipe 9).
+    Chaîne d'audit et de remédiation GitOps sécurisée sur Kubernetes.
   sourceRepos:
     - "https://github.com/maxfrn65/YnovXOVH.git"
     - "https://kyverno.github.io/kyverno/"

@@ -1,5 +1,5 @@
-# Proprietaire : Alexandre (Observabilite) - metriques (CNCF Graduated).
-# Inclut Prometheus + Grafana + Alertmanager. A ajuster (dashboards,
+# Propriétaire : Alexandre (Observabilité) - métriques (CNCF Graduated).
+# Inclut Prometheus + Grafana + Alertmanager. À ajuster (dashboards,
 # ressources) selon la taille du cluster hackathon.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -15,8 +15,8 @@ spec:
     helm:
       releaseName: monitoring
       values: |
-        # TODO (Alexandre) : dashboards custom pour la chaine
-        # (failles detectees/corrigees, temps de remediation, etc.)
+        # TODO (Alexandre) : dashboards custom pour la chaîne
+        # (failles détectées/corrigées, temps de remédiation, etc.)
         grafana:
           enabled: true
         prometheus:

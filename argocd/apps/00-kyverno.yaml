@@ -1,6 +1,6 @@
-# Proprietaire : Alexis (Cyber) - policy-as-code (CNCF Graduated)
-# A completer : ajouter les ClusterPolicy dans manifests/policies/ et les
-# referencer ici (source secondaire) ou via une Application dediee.
+# Propriétaire : Alexis (Cyber) - policy-as-code (CNCF Graduated)
+# À compléter : ajouter les ClusterPolicy dans manifests/policies/ et les
+# référencer ici (source secondaire) ou via une Application dédiée.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

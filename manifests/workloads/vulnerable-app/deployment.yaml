@@ -1,13 +1,13 @@
-# Workload volontairement vulnerable pour la demo :
-# - image obsolete -> CVEs connues detectables par Trivy/Kubescape
-# - conteneur privilegie, root, capability SYS_ADMIN, hostPath -> violations
-#   detectables par Kyverno et declenchant des alertes runtime Falco
-# - pas de limites de ressources -> non-conformite supplementaire
+# Workload volontairement vulnérable pour la démo :
+# - image obsolète -> CVEs connues détectables par Trivy/Kubescape
+# - conteneur privilégié, root, capability SYS_ADMIN, hostPath -> violations
+#   détectables par Kyverno et déclenchant des alertes runtime Falco
+# - pas de limites de ressources -> non-conformité supplémentaire
 #
 # Objectif : c'est CE fichier que la boucle IA doit corriger via une PR
 # (retirer privileged, runAsUser: 0, la capability, le hostPath, ajouter
 # des limites, monter la version de l'image), puis Argo CD resynchronise
-# automatiquement une fois la PR mergee.
+# automatiquement une fois la PR mergée.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

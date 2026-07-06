@@ -1,7 +1,7 @@
-# Proprietaire : Alexis (Cyber) - audit de securite / scan de vulnerabilites
-# (CNCF valide). Genere des CRD VulnerabilityReport / ConfigAuditReport
-# consommees par la couche IA (Maxime/Aurelien) pour proposer les correctifs.
-# Alternative possible : Kubescape (au choix de l'equipe, cf brief).
+# Propriétaire : Alexis (Cyber) - audit de sécurité / scan de vulnérabilités
+# (CNCF validé). Génère des CRD VulnerabilityReport / ConfigAuditReport
+# consommées par la couche IA (Maxime/Aurélien) pour proposer les correctifs.
+# Alternative possible : Kubescape (au choix de l'équipe, cf brief).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

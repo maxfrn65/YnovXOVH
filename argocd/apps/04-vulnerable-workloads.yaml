@@ -1,5 +1,5 @@
-# Proprietaire : Ulysse (Demo) - workloads volontairement vulnerables,
-# cibles de la demo live (scan -> IA -> PR -> merge -> resync -> cluster corrige).
+# Propriétaire : Ulysse (Démo) - workloads volontairement vulnérables,
+# cibles de la démo live (scan -> IA -> PR -> merge -> resync -> cluster corrigé).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

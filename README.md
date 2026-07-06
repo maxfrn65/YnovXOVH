@@ -1,16 +1,16 @@
 # YnovXOVH
 
-Hackathon Lille Ynov Campus x OVHcloud (6-7 juillet 2026) - Equipe 9.
-Chaine d'audit et de remediation GitOps securisee sur Kubernetes, pilotee par
-Argo CD et enrichie par l'IA generative (AI Endpoints OVHcloud).
+Hackathon Lille Ynov Campus x OVHcloud (6-7 juillet 2026) - Équipe 9.
+Chaîne d'audit et de remédiation GitOps sécurisée sur Kubernetes, pilotée par
+Argo CD et enrichie par l'IA générative (AI Endpoints OVHcloud).
 
 ## Boucle cible
 
-Detection d'une faille (Trivy-operator) -> analyse et correctif propose par
-l'IA -> Pull Request automatique sur ce depot -> revue humaine -> merge ->
-resynchronisation Argo CD -> cluster corrige.
+Détection d'une faille (Trivy-operator) -> analyse et correctif proposé par
+l'IA -> Pull Request automatique sur ce dépôt -> revue humaine -> merge ->
+resynchronisation Argo CD -> cluster corrigé.
 
-## Structure du depot
+## Structure du dépôt
 
 ```
 argocd/
@@ -19,13 +19,13 @@ argocd/
   apps/                             une Application Argo CD par brique
     00-kyverno.yaml                 policy-as-code (Alexis)
     01-falco.yaml                   detection runtime (Alexis)
-    02-trivy-operator.yaml          audit/scan de vulnerabilites (Alexis)
-    03-kube-prometheus-stack.yaml   observabilite (Alexandre)
-    04-vulnerable-workloads.yaml    workloads de demo (Ulysse)
-    05-ai-remediation.yaml          service IA (Maxime/Aurelien)
+    02-trivy-operator.yaml          audit/scan de vulnérabilités (Alexis)
+    03-kube-prometheus-stack.yaml   observabilité (Alexandre)
+    04-vulnerable-workloads.yaml    workloads de démo (Ulysse)
+    05-ai-remediation.yaml          service IA (Maxime/Aurélien)
 manifests/
-  workloads/vulnerable-app/         manifests K8s du workload volontairement vulnerable
-  ai-remediation/                   placeholder du service IA (a completer par Maxime/Aurelien)
+  workloads/vulnerable-app/         manifests K8s du workload volontairement vulnérable
+  ai-remediation/                   placeholder du service IA (à compléter par Maxime/Aurélien)
 ```
 
 ## Bootstrap (une seule fois, en manuel)
@@ -40,8 +40,8 @@ kubectl apply -f argocd/projects/hackathon-project.yaml
 kubectl apply -f argocd/bootstrap/root-app.yaml
 ```
 
-A partir de la, tout passe par Git : Argo CD lit `argocd/apps/` (recursif) et
-cree/maintient lui-meme toutes les Applications listees ci-dessus.
+À partir de là, tout passe par Git : Argo CD lit `argocd/apps/` (récursif) et
+crée/maintient lui-même toutes les Applications listées ci-dessus.
 
 ## Politique de synchronisation
 
@@ -50,30 +50,30 @@ Chaque Application utilise :
 ```yaml
 syncPolicy:
   automated:
-    prune: true      # supprime ce qui a ete retire du repo
+    prune: true      # supprime ce qui a été retiré du repo
     selfHeal: true    # corrige tout drift manuel sur le cluster
   syncOptions:
     - CreateNamespace=true
 ```
 
-## Sync quasi-instantanee post-merge (webhook)
+## Sync quasi-instantanée post-merge (webhook)
 
-Par defaut Argo CD poll le depot toutes les 3 min. Pour une resync immediate
-apres un merge de PR (important pour la demo live) :
+Par défaut Argo CD poll le dépôt toutes les 3 min. Pour une resync immédiate
+après un merge de PR (important pour la démo live) :
 
 1. Argo CD > Settings > Repositories, ou directement sur GitHub :
    Settings > Webhooks > Add webhook
    - Payload URL : `https://<argocd-server>/api/webhook`
    - Content type : `application/json`
-   - Secret : meme valeur que celle configuree dans le secret `argocd-secret`
-     (cle `webhook.github.secret`), a definir via `kubectl edit secret
+   - Secret : même valeur que celle configurée dans le secret `argocd-secret`
+     (clé `webhook.github.secret`), à définir via `kubectl edit secret
      argocd-secret -n argocd` (ne jamais committer cette valeur dans Git).
-2. Evenement a envoyer : `Just the push event`.
+2. Événement à envoyer : `Just the push event`.
 
 ## Secrets
 
 Ne jamais committer `ai-endpoints-key.txt`, le kubeconfig ou un token GitHub
-dans ce depot. Les creer directement sur le cluster :
+dans ce dépôt. Les créer directement sur le cluster :
 
 ```bash
 kubectl create secret generic ai-remediation-secrets -n ai-remediation \
