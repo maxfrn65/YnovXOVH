@@ -25,6 +25,20 @@ spec:
         reportsController:
           serviceMonitor:
             enabled: true
+        # CronJobs de cleanup désactivés : leur image bitnami/kubectl n'est
+        # plus téléchargeable (retrait des images Bitnami de Docker Hub) ->
+        # ImagePullBackOff. Optionnels sur un cluster de hackathon.
+        cleanupJobs:
+          admissionReports:
+            enabled: false
+          clusterAdmissionReports:
+            enabled: false
+          ephemeralReports:
+            enabled: false
+          clusterEphemeralReports:
+            enabled: false
+          updateRequests:
+            enabled: false
   destination:
     server: "https://kubernetes.default.svc"
     namespace: kyverno
