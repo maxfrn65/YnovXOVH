@@ -11,7 +11,10 @@ spec:
   source:
     repoURL: "https://kyverno.github.io/kyverno/"
     chart: kyverno
-    targetRevision: 3.2.6
+    # 3.8.1 = Kyverno v1.18.1, la version installée sur le cluster. Ne pas
+    # rétrograder : les certificats TLS générés par v1.18 (PKCS#8) sont
+    # illisibles par les versions plus anciennes -> rolling update bloqué.
+    targetRevision: 3.8.1
     helm:
       releaseName: kyverno
       values: |
