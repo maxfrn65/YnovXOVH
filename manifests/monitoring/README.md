@@ -15,9 +15,7 @@ Contenu déployé par l'Application Argo CD `monitoring-config`
 
 ```bash
 kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80
-# login: admin / mot de passe:
-kubectl get secret monitoring-grafana -n monitoring \
-  -o jsonpath="{.data.admin-password}" | base64 -d
+# login : admin / hackathon2026
 ```
 
 Dashboard : "Chaîne de sécurité - détection & remédiation IA" (uid

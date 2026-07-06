@@ -34,3 +34,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # CRD volumineuses de Kyverno : requis pour éviter "annotation too long"
+      # (cf. guide, étape 6.2 et dépannage).
+      - ServerSideApply=true

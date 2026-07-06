@@ -9,7 +9,8 @@ spec:
   project: hackathon-equipe9
   source:
     repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
-    targetRevision: main
+    # TODO : repasser sur "main" au moment du merge de feat/observability
+    targetRevision: feat/observability
     path: manifests/workloads/vulnerable-app
   destination:
     server: "https://kubernetes.default.svc"
