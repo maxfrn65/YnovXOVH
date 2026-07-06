@@ -1,0 +1,36 @@
+# Proprietaire : Alexandre (Observabilite) - metriques (CNCF Graduated).
+# Inclut Prometheus + Grafana + Alertmanager. A ajuster (dashboards,
+# ressources) selon la taille du cluster hackathon.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://prometheus-community.github.io/helm-charts"
+    chart: kube-prometheus-stack
+    targetRevision: 62.7.0
+    helm:
+      releaseName: monitoring
+      values: |
+        # TODO (Alexandre) : dashboards custom pour la chaine
+        # (failles detectees/corrigees, temps de remediation, etc.)
+        grafana:
+          enabled: true
+        prometheus:
+          prometheusSpec:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

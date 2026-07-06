@@ -1,0 +1,46 @@
+# Workload volontairement vulnerable pour la demo :
+# - image obsolete -> CVEs connues detectables par Trivy/Kubescape
+# - conteneur privilegie, root, capability SYS_ADMIN, hostPath -> violations
+#   detectables par Kyverno et declenchant des alertes runtime Falco
+# - pas de limites de ressources -> non-conformite supplementaire
+#
+# Objectif : c'est CE fichier que la boucle IA doit corriger via une PR
+# (retirer privileged, runAsUser: 0, la capability, le hostPath, ajouter
+# des limites, monter la version de l'image), puis Argo CD resynchronise
+# automatiquement une fois la PR mergee.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-webapp
+  namespace: vulnerable-demo
+  labels:
+    app: legacy-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: legacy-webapp
+  template:
+    metadata:
+      labels:
+        app: legacy-webapp
+    spec:
+      containers:
+        - name: webapp
+          image: nginx:1.16.0
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+          resources: {}
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /

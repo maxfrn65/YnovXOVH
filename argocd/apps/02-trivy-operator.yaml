@@ -1,0 +1,31 @@
+# Proprietaire : Alexis (Cyber) - audit de securite / scan de vulnerabilites
+# (CNCF valide). Genere des CRD VulnerabilityReport / ConfigAuditReport
+# consommees par la couche IA (Maxime/Aurelien) pour proposer les correctifs.
+# Alternative possible : Kubescape (au choix de l'equipe, cf brief).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trivy-operator
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://aquasecurity.github.io/helm-charts/"
+    chart: trivy-operator
+    targetRevision: 0.24.1
+    helm:
+      releaseName: trivy-operator
+      values: |
+        trivy:
+          ignoreUnfixed: true
+        operator:
+          scanJobsConcurrentLimit: 3
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: trivy-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
