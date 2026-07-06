@@ -1,0 +1,32 @@
+# Propriétaire : Alexis (Cyber) - détection de menaces runtime (CNCF Graduated)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: falco
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://falcosecurity.github.io/charts"
+    chart: falco
+    targetRevision: 4.7.3
+    helm:
+      releaseName: falco
+      values: |
+        driver:
+          kind: modern_ebpf
+        tty: true
+        falcosidekick:
+          enabled: false
+          # TODO (Alexis) : activer + brancher sur le service IA (webhook)
+          # pour transformer les alertes runtime en événements exploitables
+          # par la boucle de remédiation.
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: falco
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

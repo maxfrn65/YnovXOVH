@@ -1,0 +1,28 @@
+# Propriétaire : Alexis (Cyber) - policy-as-code (CNCF Graduated)
+# À compléter : ajouter les ClusterPolicy dans manifests/policies/ et les
+# référencer ici (source secondaire) ou via une Application dédiée.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://kyverno.github.io/kyverno/"
+    chart: kyverno
+    targetRevision: 3.2.6
+    helm:
+      releaseName: kyverno
+      values: |
+        # TODO (Alexis) : ajuster selon les besoins (admission controller HA, etc.)
+        replicaCount: 1
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

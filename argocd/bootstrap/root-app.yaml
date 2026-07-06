@@ -1,0 +1,43 @@
+# App of Apps : cette Application unique surveille argocd/apps/ et crée/gère
+# automatiquement toutes les Applications qui s'y trouvent (Kyverno, Falco,
+# Trivy-operator, Prometheus, workloads vulnérables, service IA...).
+#
+# Bootstrap (une seule fois, manuellement, avant que GitOps ne prenne le relais) :
+#   kubectl create namespace argocd
+#   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+#   kubectl apply -f argocd/projects/hackathon-project.yaml
+#   kubectl apply -f argocd/bootstrap/root-app.yaml
+#
+# À partir de là, tout passe par Git : on ajoute/modifie un fichier dans
+# argocd/apps/ ou manifests/, on push/merge sur main, Argo CD resynchronise seul.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: true
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

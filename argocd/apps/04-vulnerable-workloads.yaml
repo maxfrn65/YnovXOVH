@@ -1,0 +1,22 @@
+# Propriétaire : Ulysse (Démo) - workloads volontairement vulnérables,
+# cibles de la démo live (scan -> IA -> PR -> merge -> resync -> cluster corrigé).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vulnerable-workloads
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main
+    path: manifests/workloads/vulnerable-app
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: vulnerable-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

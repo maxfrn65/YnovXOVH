@@ -1,0 +1,25 @@
+# Propriétaire : Maxime / Aurélien - service qui analyse les rapports de
+# scan (VulnerabilityReport de Trivy-operator, PolicyReport de Kyverno,
+# alertes Falco), appelle AI Endpoints OVHcloud pour générer un correctif,
+# puis ouvre une PR sur ce dépôt. Remplacer l'image placeholder par la vraie
+# une fois le service prêt (cf manifests/ai-remediation/deployment.yaml).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-remediation
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main
+    path: manifests/ai-remediation
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: ai-remediation
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
