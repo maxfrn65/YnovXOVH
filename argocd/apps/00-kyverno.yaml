@@ -17,6 +17,14 @@ spec:
       values: |
         # TODO (Alexis) : ajuster selon les besoins (admission controller HA, etc.)
         replicaCount: 1
+        # Métriques (Alexandre) : expose kyverno_policy_results_total vers
+        # Prometheus (violations de policies sur le dashboard Grafana).
+        admissionController:
+          serviceMonitor:
+            enabled: true
+        reportsController:
+          serviceMonitor:
+            enabled: true
   destination:
     server: "https://kubernetes.default.svc"
     namespace: kyverno

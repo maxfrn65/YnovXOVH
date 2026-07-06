@@ -1,0 +1,29 @@
+# Propriétaire : Alexandre (Observabilité) - configuration monitoring versionnée :
+# dashboard Grafana "chaîne de sécurité", alertes Prometheus et scrape du
+# service ai-remediation. Dépend des CRD installées par kube-prometheus-stack
+# (03) : si la première sync échoue, un retry suffit une fois la stack posée.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-config
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main
+    path: manifests/monitoring
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2

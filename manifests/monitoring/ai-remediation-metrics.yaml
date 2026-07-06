@@ -1,0 +1,37 @@
+# Scrape des métriques du service IA (contrat décrit dans le README de ce
+# dossier). Le Service cible les pods labellisés app=ai-remediation-service
+# dans le namespace ai-remediation : dès que Maxime/Aurélien exposent
+# /metrics sur le port 8080, Prometheus les récupère sans autre changement.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-remediation-metrics
+  namespace: ai-remediation
+  labels:
+    app: ai-remediation-service
+spec:
+  selector:
+    app: ai-remediation-service
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-remediation
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - ai-remediation
+  selector:
+    matchLabels:
+      app: ai-remediation-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

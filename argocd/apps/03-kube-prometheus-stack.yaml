@@ -15,12 +15,25 @@ spec:
     helm:
       releaseName: monitoring
       values: |
-        # TODO (Alexandre) : dashboards custom pour la chaîne
-        # (failles détectées/corrigées, temps de remédiation, etc.)
         grafana:
           enabled: true
+          # Le sidecar charge automatiquement tout ConfigMap portant le label
+          # grafana_dashboard=1 (cf. manifests/monitoring/) : les dashboards
+          # vivent dans Git, pas dans l'UI.
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL
+              label: grafana_dashboard
         prometheus:
           prometheusSpec:
+            # Sans ces flags, Prometheus n'observe que les ServiceMonitors
+            # créés par ce chart : indispensables pour scraper trivy-operator,
+            # kyverno et le service ai-remediation.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            retention: 48h
             resources:
               requests:
                 cpu: 100m

@@ -23,9 +23,11 @@ argocd/
     03-kube-prometheus-stack.yaml   observabilité (Alexandre)
     04-vulnerable-workloads.yaml    workloads de démo (Ulysse)
     05-ai-remediation.yaml          service IA (Maxime/Aurélien)
+    06-monitoring-config.yaml       dashboards/alertes de la chaîne (Alexandre)
 manifests/
   workloads/vulnerable-app/         manifests K8s du workload volontairement vulnérable
   ai-remediation/                   placeholder du service IA (à compléter par Maxime/Aurélien)
+  monitoring/                       dashboard Grafana, alertes, contrat de métriques IA (Alexandre)
 ```
 
 ## Bootstrap (une seule fois, en manuel)
