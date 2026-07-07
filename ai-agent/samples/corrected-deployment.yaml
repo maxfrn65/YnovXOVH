@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable-webapp
+  namespace: production
+  labels:
+    app: vulnerable-webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vulnerable-webapp
+  template:
+    metadata:
+      labels:
+        app: vulnerable-webapp
+    spec:
+      containers:
+      - name: webapp
+        image: nginx:1.24  # Fixed version is 'nginx:1.24' or newer
+        ports:
+        - containerPort: 80
+        securityContext:
+          privileged: false  # Risque de sécurité majeur (privilégié) supprimé
+          runAsNonRoot: true  # Tourne en root par défaut remplacé par runAsNonRoot: true
+          readOnlyRootFilesystem: true  # readOnlyRootFilesystem ajouté
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

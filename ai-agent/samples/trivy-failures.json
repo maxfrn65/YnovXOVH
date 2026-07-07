@@ -1,0 +1,30 @@
+[
+  {
+    "checkID": "KSV017",
+    "severity": "HIGH",
+    "messages": [
+      "Containers should not run with privileged=true. Privileged containers have access to all devices on the host."
+    ]
+  },
+  {
+    "checkID": "KSV012",
+    "severity": "HIGH",
+    "messages": [
+      "runAsNonRoot should be set to true. Running as root allows container processes to bypass OS-level protections."
+    ]
+  },
+  {
+    "checkID": "KSV014",
+    "severity": "MEDIUM",
+    "messages": [
+      "readOnlyRootFilesystem should be set to true to prevent write access to the container filesystem."
+    ]
+  },
+  {
+    "checkID": "CVE-2019-20367",
+    "severity": "CRITICAL",
+    "messages": [
+      "Image 'nginx:1.16' contains multiple CRITICAL vulnerabilities. Fixed version is 'nginx:1.24' or newer."
+    ]
+  }
+]
