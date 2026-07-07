@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
     # TODO : repasser sur "main" au moment du merge
-    targetRevision: feature/gitops-argocd-setup
+    targetRevision: main
     path: manifests/workloads/vulnerable-app
   destination:
     server: "https://kubernetes.default.svc"
