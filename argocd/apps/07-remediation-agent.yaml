@@ -1,0 +1,29 @@
+# Agent de remédiation IA en CronJob (Maxime/Aurélien - deploy-auto/).
+# Déploie le ServiceAccount RBAC lecture seule + le CronJob qui, à chaque
+# réveil : lit les rapports Trivy, appelle AI Endpoints, ouvre une PR.
+# Prérequis hors Git (jamais committés) :
+#   1. l'image du conteneur buildée et poussée sur un registre accessible
+#      (cf deploy-auto/README.md), et son nom renseigné dans cronjob.yaml
+#   2. le secret : kubectl create secret generic remediation-agent-secrets
+#      -n security --from-literal=GITHUB_TOKEN=... --from-literal=...
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: remediation-agent
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    # TODO : repasser sur "main" une fois le test validé et la branche mergée
+    targetRevision: test/cronjob-remediator
+    path: deploy-auto
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: security
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

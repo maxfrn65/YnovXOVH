@@ -1,0 +1,9 @@
+# Assemble le RBAC et le CronJob de l'agent pour l'Application Argo CD
+# 07-remediation-agent (argocd/apps/). Le dossier argocd/ voisin est
+# volontairement exclu : c'est une Application alternative en doublon de
+# l'app-of-apps (cf. son en-tête), à ne jamais déployer en même temps.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rbac/rbac.yaml
+  - agent/cronjob.yaml
