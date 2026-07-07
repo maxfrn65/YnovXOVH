@@ -1,0 +1,74 @@
+# Bloque (en audit, sans empecher le sync GitOps) les conteneurs privilegies,
+# root ou avec des capabilities dangereuses. Cible directement les
+# violations volontaires de legacy-webapp (manifests/workloads/vulnerable-app/).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-and-root
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged and Root Containers
+    policies.kyverno.io/category: Pod Security Standards (Baseline)
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: no-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Les conteneurs privilegies (privileged: true) sont interdits."
+        pattern:
+          spec:
+            =(ephemeralContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+    - name: no-root-user
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Les conteneurs qui tournent explicitement en root (runAsUser: 0) sont interdits."
+        pattern:
+          spec:
+            containers:
+              - =(securityContext):
+                  =(runAsUser): "!0"
+    - name: no-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "allowPrivilegeEscalation doit etre a false."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  =(allowPrivilegeEscalation): "false"
+    - name: no-dangerous-capabilities
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Les capabilities SYS_ADMIN/NET_ADMIN/ALL sont interdites."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.containers[].securityContext.capabilities.add[] || `[]` }}"
+                operator: AnyIn
+                value: ["SYS_ADMIN", "NET_ADMIN", "ALL"]
