@@ -1,0 +1,37 @@
+# Second workload volontairement vulnérable, complémentaire de legacy-webapp :
+# - image obsolète (redis:5.0) -> CVEs connues
+# - secret en clair dans une variable d'environnement -> violation Kyverno
+#   (pas de Secret/ESO utilisé) détectable aussi par un scan de configuration
+# - hostNetwork: true -> expose le pod directement sur le réseau du noeud,
+#   violation supplémentaire détectable par Kyverno et surveillable par Falco
+# - pas de limites de ressources -> non-conformité supplémentaire
+#
+# Objectif : diversifier les types de failles démontrées (au-delà du
+# privileged/root/hostPath de legacy-webapp) pour la démo live.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insecure-config-app
+  namespace: vulnerable-demo
+  labels:
+    app: insecure-config-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: insecure-config-app
+  template:
+    metadata:
+      labels:
+        app: insecure-config-app
+    spec:
+      hostNetwork: true
+      containers:
+        - name: redis
+          image: redis:5.0
+          env:
+            - name: REDIS_PASSWORD
+              value: "SuperSecret123"
+          resources: {}
+          ports:
+            - containerPort: 6379

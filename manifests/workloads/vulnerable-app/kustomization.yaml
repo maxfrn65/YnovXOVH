@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - deployment.yaml
+  - deployment-insecure-config.yaml
   - service.yaml
