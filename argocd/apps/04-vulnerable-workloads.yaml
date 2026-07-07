@@ -9,8 +9,8 @@ spec:
   project: hackathon-equipe9
   source:
     repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
-    # TODO : repasser sur "main" au moment du merge de feat/observability
-    targetRevision: feat/observability
+    # TODO : repasser sur "main" au moment du merge
+    targetRevision: feature/gitops-argocd-setup
     path: manifests/workloads/vulnerable-app
   destination:
     server: "https://kubernetes.default.svc"
