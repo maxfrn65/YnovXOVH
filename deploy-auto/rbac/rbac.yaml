@@ -1,0 +1,45 @@
+# RBAC de l'agent de remédiation.
+#
+# ⭐ C'est ici que se règle ta contrainte « le kubeconfig ne peut pas être
+# modifié ». Quand l'agent tourne DANS le cluster, remediator.py appelle
+# load_incluster_config() : il ne lit PAS le fichier kubeconfig (clusters/
+# contexts), il utilise l'identité du ServiceAccount ci-dessous, montée
+# automatiquement dans le pod. On ne touche donc jamais au kubeconfig.
+#
+# Permissions accordées : lecture seule des rapports produits par Trivy
+# Operator (ConfigAuditReports / VulnerabilityReports). L'agent n'a AUCUN
+# droit d'écriture sur le cluster : il n'écrit que dans Git. C'est volontaire
+# et cohérent avec le principe « la remédiation passe par une PR, pas par une
+# modification directe du cluster ».
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: remediation-agent
+  namespace: security
+---
+# ClusterRole car les rapports Trivy peuvent exister dans plusieurs namespaces.
+# Réduire à un Role namespacé si tu ne cibles qu'un seul namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: remediation-agent-reader
+rules:
+  - apiGroups: ["aquasecurity.github.io"]
+    resources:
+      - configauditreports
+      - vulnerabilityreports
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: remediation-agent-reader-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: remediation-agent-reader
+subjects:
+  - kind: ServiceAccount
+    name: remediation-agent
+    namespace: security

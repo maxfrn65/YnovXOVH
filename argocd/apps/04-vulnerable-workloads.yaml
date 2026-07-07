@@ -9,7 +9,6 @@ spec:
   project: hackathon-equipe9
   source:
     repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
-    # TODO : repasser sur "main" au moment du merge
     targetRevision: main
     path: manifests/workloads/vulnerable-app
   destination:

@@ -1,0 +1,25 @@
+# ⚠ DOUBLON POTENTIEL : l'app-of-apps (argocd/apps/04-vulnerable-workloads.yaml)
+# gère DÉJÀ ce même path/namespace. Ne PAS déployer les deux en même temps :
+# deux Applications avec prune+selfHeal sur les mêmes ressources se battent en
+# boucle. Utilise SOIT l'app-of-apps (recommandé), SOIT cette Application seule.
+# Par défaut, install.sh ne l'applique PAS (voir le commentaire dans install.sh).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-config
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main           # la branche que l'agent corrige via PR
+    path: manifests/workloads/vulnerable-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vulnerable-demo              # namespace cible des applications
+  syncPolicy:
+    automated:                      # Argo CD applique dès qu'un merge arrive
+      prune: true                   # supprime les ressources retirées de Git
+      selfHeal: true                # réaligne le cluster si dérive manuelle
+    syncOptions:
+      - CreateNamespace=true
