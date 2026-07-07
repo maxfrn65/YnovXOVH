@@ -1,14 +1,3 @@
-# PLACEHOLDER - à remplacer par Maxime/Aurélien.
-# Le vrai service doit :
-#   1. Lire les VulnerabilityReport (trivy-operator) / PolicyReport (Kyverno)
-#      / alertes Falco.
-#   2. Appeler AI Endpoints OVHcloud (secret OVH_AI_ENDPOINTS_ACCESS_TOKEN)
-#      pour analyser et générer un correctif (patch de manifest).
-#   3. Ouvrir une Pull Request sur github.com/maxfrn65/YnovXOVH avec un
-#      token GitHub (secret à stocker via kubectl create secret, ne jamais
-#      committer la valeur en clair).
-# Une fois la PR mergée sur main, Argo CD (voir argocd/apps/) resynchronise
-# automatiquement le workload corrigé.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,14 +23,16 @@ spec:
             requests:
               cpu: 10m
               memory: 16Mi
-          # env:
-          #   - name: OVH_AI_ENDPOINTS_ACCESS_TOKEN
-          #     valueFrom:
-          #       secretKeyRef:
-          #         name: ai-remediation-secrets
-          #         key: ai-endpoints-token
-          #   - name: GITHUB_TOKEN
-          #     valueFrom:
-          #       secretKeyRef:
-          #         name: ai-remediation-secrets
-          #         key: github-token
+            limits:
+              memory: "16Mi"
+              cpu: "100m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop: ["ALL"]
