@@ -40,7 +40,7 @@ n'écrit rien dans le cluster, seulement dans Git.
 |---|---|
 | `Dockerfile` | Empaquette `ai-agent/` en image conteneur (avec `git`). |
 | `agent/entrypoint.sh` | Clone le dépôt de manifestes puis lance `remediator.py --cluster`. |
-| `agent/cronjob.yaml` | CronJob + ConfigMap + Secret de l'agent. |
+| `agent/cronjob.yaml` | CronJob + ConfigMap de l'agent (le Secret est créé hors Git, voir §Secrets). |
 | `rbac/rbac.yaml` | ServiceAccount + droits lecture des rapports Trivy. |
 | `argocd/application.yaml` | Application Argo CD surveillant le dépôt. |
 | `install.sh` | Déploie tout dans l'ordre. |
@@ -57,7 +57,7 @@ Argo CD s'installe **dans le cluster lui-même**, dans son propre namespace
 Depuis la racine du dépôt (là où se trouve `ai-agent/`) :
 
 ```bash
-docker build -f deploy-automation/Dockerfile -t registry.example/ai-remediation-agent:latest .
+docker build -f deploy-auto/Dockerfile -t registry.example/ai-remediation-agent:latest .
 docker push registry.example/ai-remediation-agent:latest
 ```
 
@@ -67,16 +67,28 @@ Adapter `registry.example/...` à ton registre, et l'`image:` dans
 ### 2. Adapter les valeurs
 - `agent/cronjob.yaml` : `GITHUB_REPOSITORY`, `GIT_BASE_BRANCH`, le modèle IA.
 - `argocd/application.yaml` : `repoURL`, `targetRevision`, `path`.
-- Les secrets : idéalement via **ESO**, sinon `kubectl -n security edit secret
-  remediation-agent-secrets`.
 
-### 3. Tout installer
+### 3. Créer le Secret des tokens (HORS Git)
+Le Secret n'est **pas** dans `cronjob.yaml` : on ne committe jamais de token.
+Il faut le créer directement sur le cluster **avant** `install.sh` (le script
+vérifie sa présence et refuse de continuer s'il manque) :
+
 ```bash
-cd deploy-automation
+kubectl create secret generic remediation-agent-secrets -n security \
+  --from-literal=OVH_AI_ENDPOINTS_ACCESS_TOKEN="<token_ovh>" \
+  --from-literal=GITHUB_TOKEN="<pat_github>"
+```
+
+En option (brique CNCF), ce Secret peut être peuplé par **ESO** depuis un
+gestionnaire de secrets, plutôt que par cette commande manuelle.
+
+### 4. Tout installer
+```bash
+cd deploy-auto
 ./install.sh
 ```
 
-### 4. Vérifier
+### 5. Vérifier
 ```bash
 # Déclencher l'agent manuellement sans attendre le cron
 kubectl -n security create job --from=cronjob/ai-remediation-agent test-run

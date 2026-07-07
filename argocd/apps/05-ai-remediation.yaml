@@ -12,8 +12,7 @@ spec:
   project: hackathon-equipe9
   source:
     repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
-    # TODO : repasser sur "main" au moment du merge
-    targetRevision: feat/gitops-argocd-setup
+    targetRevision: main
     path: manifests/ai-remediation
   destination:
     server: "https://kubernetes.default.svc"

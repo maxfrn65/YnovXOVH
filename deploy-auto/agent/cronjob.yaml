@@ -14,20 +14,8 @@ data:
   # Paramètres non sensibles (repris du .env.example de l'agent)
   OVH_AI_ENDPOINTS_BASE_URL: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
   OVH_AI_ENDPOINTS_MODEL: "Mistral-7B-Instruct-v0.3"
-  GITHUB_REPOSITORY: "mon-org/YnovXOVH"
+  GITHUB_REPOSITORY: "maxfrn65/YnovXOVH"
   GIT_BASE_BRANCH: "main"
----
-# Secret d'exemple. NE PAS committer de vraies valeurs : idéalement renseigné
-# par ESO (External Secrets Operator) depuis le gestionnaire de secrets.
-apiVersion: v1
-kind: Secret
-metadata:
-  name: remediation-agent-secrets
-  namespace: security
-type: Opaque
-stringData:
-  OVH_AI_ENDPOINTS_ACCESS_TOKEN: "REMPLACER_OU_INJECTER_VIA_ESO"
-  GITHUB_TOKEN: "REMPLACER_OU_INJECTER_VIA_ESO"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -49,7 +37,11 @@ spec:
           restartPolicy: Never
           containers:
             - name: agent
+              # ⚠ REMPLACER par ton registre après `docker build/push`
+              #   (cf deploy-auto/README.md). Tant que c'est un placeholder,
+              #   le pod restera en ImagePullBackOff.
               image: registry.example/ai-remediation-agent:latest
+              imagePullPolicy: IfNotPresent
               envFrom:
                 - configMapRef:
                     name: remediation-agent-config
@@ -59,6 +51,12 @@ spec:
                 # Répertoire clonable en écriture (rootfs monté read-only)
                 - name: WORKDIR
                   value: /tmp/manifests-repo
+                # rootfs en lecture seule : git a besoin d'un HOME writable pour
+                # ses fichiers de config/cache. On le pointe vers /tmp (emptyDir).
+                - name: HOME
+                  value: /tmp
+                - name: GIT_CONFIG_GLOBAL
+                  value: /tmp/.gitconfig
               volumeMounts:
                 - name: tmp
                   mountPath: /tmp
