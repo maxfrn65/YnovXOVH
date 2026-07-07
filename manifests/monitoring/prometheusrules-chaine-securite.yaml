@@ -1,0 +1,37 @@
+# Alertes de la chaîne de sécurité. Le label release=monitoring permet
+# leur prise en compte même si le ruleSelector par défaut du chart change.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: chaine-securite
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: chaine-securite
+      rules:
+        - alert: VulnerabiliteCritiqueDetectee
+          expr: sum(trivy_image_vulnerabilities{severity="Critical"}) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Au moins une CVE Critical présente sur le cluster"
+            description: >-
+              Trivy remonte {{ $value }} vulnérabilité(s) Critical.
+              La boucle de remédiation IA devrait ouvrir une PR ;
+              vérifier le service ai-remediation si rien ne se passe.
+        - alert: RemediationBloquee
+          expr: >-
+            sum(trivy_image_vulnerabilities{severity="Critical"}) > 0
+            and sum(increase(ai_remediation_prs_opened_total[30m])) == 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CVE Critical sans PR de remédiation depuis 30 min"
+            description: >-
+              Des vulnérabilités critiques persistent mais le service
+              ai-remediation n'a ouvert aucune PR sur les 30 dernières
+              minutes : boucle probablement bloquée.

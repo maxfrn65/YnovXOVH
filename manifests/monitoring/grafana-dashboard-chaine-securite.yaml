@@ -1,0 +1,207 @@
+# Dashboard Grafana "Chaîne de sécurité" chargé automatiquement par le
+# sidecar (label grafana_dashboard=1, cf. values de 03-kube-prometheus-stack).
+# Le dashboard vit dans Git : toute modification passe par une PR, comme le
+# reste de la chaîne.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-chaine-securite
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  chaine-securite.json: |
+    {
+      "title": "Chaîne de sécurité - détection & remédiation IA",
+      "uid": "chaine-securite",
+      "tags": ["hackathon", "securite"],
+      "timezone": "browser",
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "schemaVersion": 39,
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "CVE Critical (cluster)",
+          "gridPos": { "h": 5, "w": 5, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(trivy_image_vulnerabilities{severity=\"Critical\"}) or vector(0)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "CVE High (cluster)",
+          "gridPos": { "h": 5, "w": 5, "x": 5, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(trivy_image_vulnerabilities{severity=\"High\"}) or vector(0)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Violations Kyverno (24h)",
+          "gridPos": { "h": 5, "w": 5, "x": 10, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "ceil(sum(increase(kyverno_policy_results_total{policy_result=\"fail\"}[24h]))) or vector(0)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "PRs de remédiation ouvertes (IA)",
+          "gridPos": { "h": 5, "w": 5, "x": 15, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(ai_remediation_prs_opened_total) or vector(0)"
+            }
+          ],
+          "fieldConfig": { "defaults": {}, "overrides": [] }
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "Failles corrigées (PRs mergées)",
+          "gridPos": { "h": 5, "w": 4, "x": 20, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(ai_remediation_prs_merged_total) or vector(0)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "text", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Vulnérabilités détectées par sévérité (Trivy)",
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 5 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (severity) (trivy_image_vulnerabilities)",
+              "legendFormat": "{{severity}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } }, "overrides": [] }
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Temps de remédiation (détection -> PR ouverte)",
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 5 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(ai_remediation_duration_seconds_bucket[30m])))",
+              "legendFormat": "p50"
+            },
+            {
+              "refId": "B",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(ai_remediation_duration_seconds_bucket[30m])))",
+              "legendFormat": "p95"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "s", "custom": { "fillOpacity": 10 } },
+            "overrides": []
+          }
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Activité de la boucle IA (findings analysés / PRs)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(increase(ai_remediation_findings_total[15m]))",
+              "legendFormat": "findings analysés (15m)"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(increase(ai_remediation_prs_opened_total[15m]))",
+              "legendFormat": "PRs ouvertes (15m)"
+            },
+            {
+              "refId": "C",
+              "expr": "sum(increase(ai_remediation_prs_merged_total[15m]))",
+              "legendFormat": "PRs mergées (15m)"
+            }
+          ],
+          "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } }, "overrides": [] }
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Échecs d'audit de configuration (Trivy ConfigAudit)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (severity) (trivy_resource_configaudits)",
+              "legendFormat": "{{severity}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } }, "overrides": [] }
+        }
+      ]
+    }

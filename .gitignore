@@ -1,2 +1,6 @@
+.idea/
+*.kubeconfig
+kubeconfig*.yaml
+ai-endpoints-key.txt
 brief.md
 ai-agent/.env
