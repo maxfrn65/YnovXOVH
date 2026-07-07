@@ -37,9 +37,6 @@ spec:
           restartPolicy: Never
           containers:
             - name: agent
-              # ⚠ REMPLACER par ton registre après `docker build/push`
-              #   (cf deploy-auto/README.md). Tant que c'est un placeholder,
-              #   le pod restera en ImagePullBackOff.
               image: alexandrepy25/ai-remediation-agent:v1
               imagePullPolicy: IfNotPresent
               envFrom:
