@@ -1,0 +1,78 @@
+# CronJob qui réveille périodiquement l'agent de remédiation.
+#
+# À chaque réveil : un pod démarre, clone le dépôt de manifestes, interroge les
+# rapports Trivy du cluster, fait analyser/corriger par l'IA OVHcloud, ouvre une
+# PR, puis se termine. Le pod utilise le ServiceAccount `remediation-agent`
+# (voir rbac.yaml) pour s'authentifier au cluster — pas le kubeconfig.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: remediation-agent-config
+  namespace: security
+data:
+  # Paramètres non sensibles (repris du .env.example de l'agent)
+  OVH_AI_ENDPOINTS_BASE_URL: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+  OVH_AI_ENDPOINTS_MODEL: "Mistral-7B-Instruct-v0.3"
+  GITHUB_REPOSITORY: "mon-org/YnovXOVH"
+  GIT_BASE_BRANCH: "main"
+---
+# Secret d'exemple. NE PAS committer de vraies valeurs : idéalement renseigné
+# par ESO (External Secrets Operator) depuis le gestionnaire de secrets.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: remediation-agent-secrets
+  namespace: security
+type: Opaque
+stringData:
+  OVH_AI_ENDPOINTS_ACCESS_TOKEN: "REMPLACER_OU_INJECTER_VIA_ESO"
+  GITHUB_TOKEN: "REMPLACER_OU_INJECTER_VIA_ESO"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ai-remediation-agent
+  namespace: security
+spec:
+  schedule: "0 */6 * * *"          # toutes les 6 heures
+  concurrencyPolicy: Forbid        # jamais deux exécutions simultanées
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 900    # tue le job s'il dépasse 15 min
+      template:
+        spec:
+          serviceAccountName: remediation-agent   # ← identité RBAC (pas de kubeconfig)
+          restartPolicy: Never
+          containers:
+            - name: agent
+              image: registry.example/ai-remediation-agent:latest
+              envFrom:
+                - configMapRef:
+                    name: remediation-agent-config
+                - secretRef:
+                    name: remediation-agent-secrets
+              env:
+                # Répertoire clonable en écriture (rootfs monté read-only)
+                - name: WORKDIR
+                  value: /tmp/manifests-repo
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+          volumes:
+            - name: tmp
+              emptyDir: {}

@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-config
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mon-org/YnovXOVH.git
+    targetRevision: main           # la branche que l'agent corrige via PR
+    path: manifests                 # sous-dossier des manifestes (à adapter)
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default              # namespace cible des applications
+  syncPolicy:
+    automated:                      # Argo CD applique dès qu'un merge arrive
+      prune: true                   # supprime les ressources retirées de Git
+      selfHeal: true                # réaligne le cluster si dérive manuelle
+    syncOptions:
+      - CreateNamespace=true
