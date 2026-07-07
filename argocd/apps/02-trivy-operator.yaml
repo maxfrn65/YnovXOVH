@@ -20,6 +20,11 @@ spec:
           ignoreUnfixed: true
         operator:
           scanJobsConcurrentLimit: 3
+        # Métriques (Alexandre) : expose trivy_image_vulnerabilities & co vers
+        # Prometheus. Requiert les CRD ServiceMonitor : synchroniser
+        # kube-prometheus-stack en premier (un simple retry Argo CD suffit).
+        serviceMonitor:
+          enabled: true
   destination:
     server: "https://kubernetes.default.svc"
     namespace: trivy-system

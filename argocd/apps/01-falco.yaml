@@ -9,18 +9,22 @@ spec:
   source:
     repoURL: "https://falcosecurity.github.io/charts"
     chart: falco
-    targetRevision: 4.7.3
+    # 9.1.0 = version déjà installée sur le cluster (4.7.3 n'existe plus
+    # dans le dépôt Helm falcosecurity).
+    targetRevision: 9.1.0
     helm:
       releaseName: falco
       values: |
         driver:
           kind: modern_ebpf
         tty: true
+        # Sidekick + UI activés : alignés sur l'installation existante et sur
+        # le guide (étape 7). TODO (Alexis) : brancher le webhook sidekick sur
+        # le service IA pour exploiter les alertes runtime dans la boucle.
         falcosidekick:
-          enabled: false
-          # TODO (Alexis) : activer + brancher sur le service IA (webhook)
-          # pour transformer les alertes runtime en événements exploitables
-          # par la boucle de remédiation.
+          enabled: true
+          webui:
+            enabled: true
   destination:
     server: "https://kubernetes.default.svc"
     namespace: falco
