@@ -1,0 +1,37 @@
+# Cible le montage hostPath de legacy-webapp et le hostNetwork
+# d'insecure-config-app (manifests/workloads/vulnerable-app/).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-hostpath-and-hostnetwork
+  annotations:
+    policies.kyverno.io/title: Disallow hostPath and hostNetwork
+    policies.kyverno.io/category: Pod Security Standards (Baseline)
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: no-hostpath-volumes
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Les volumes hostPath sont interdits (acces direct au disque du noeud)."
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"
+    - name: no-hostnetwork
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "hostNetwork: true est interdit (le pod ne doit pas partager le reseau du noeud)."
+        pattern:
+          spec:
+            =(hostNetwork): "false"

@@ -1,0 +1,24 @@
+# Propriétaire : Alexis (Cyber) - ClusterPolicy Kyverno (manifests/policies/).
+# En Audit + background: true pour générer des PolicyReport sur les
+# workloads déjà déployés, sans bloquer le sync GitOps des ressources
+# volontairement vulnérables.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno-policies
+  namespace: argocd
+spec:
+  project: hackathon-equipe9
+  source:
+    repoURL: "https://github.com/maxfrn65/YnovXOVH.git"
+    targetRevision: main
+    path: manifests/policies
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
