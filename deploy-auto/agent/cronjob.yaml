@@ -1,0 +1,76 @@
+# CronJob qui réveille périodiquement l'agent de remédiation.
+#
+# À chaque réveil : un pod démarre, clone le dépôt de manifestes, interroge les
+# rapports Trivy du cluster, fait analyser/corriger par l'IA OVHcloud, ouvre une
+# PR, puis se termine. Le pod utilise le ServiceAccount `remediation-agent`
+# (voir rbac.yaml) pour s'authentifier au cluster — pas le kubeconfig.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: remediation-agent-config
+  namespace: security
+data:
+  # Paramètres non sensibles (repris du .env.example de l'agent)
+  OVH_AI_ENDPOINTS_BASE_URL: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
+  OVH_AI_ENDPOINTS_MODEL: "Mistral-7B-Instruct-v0.3"
+  GITHUB_REPOSITORY: "maxfrn65/YnovXOVH"
+  GIT_BASE_BRANCH: "main"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ai-remediation-agent
+  namespace: security
+spec:
+  schedule: "0 */6 * * *"          # toutes les 6 heures
+  concurrencyPolicy: Forbid        # jamais deux exécutions simultanées
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 900    # tue le job s'il dépasse 15 min
+      template:
+        spec:
+          serviceAccountName: remediation-agent   # ← identité RBAC (pas de kubeconfig)
+          restartPolicy: Never
+          containers:
+            - name: agent
+              # ⚠ REMPLACER par ton registre après `docker build/push`
+              #   (cf deploy-auto/README.md). Tant que c'est un placeholder,
+              #   le pod restera en ImagePullBackOff.
+              image: registry.example/ai-remediation-agent:latest
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - configMapRef:
+                    name: remediation-agent-config
+                - secretRef:
+                    name: remediation-agent-secrets
+              env:
+                # Répertoire clonable en écriture (rootfs monté read-only)
+                - name: WORKDIR
+                  value: /tmp/manifests-repo
+                # rootfs en lecture seule : git a besoin d'un HOME writable pour
+                # ses fichiers de config/cache. On le pointe vers /tmp (emptyDir).
+                - name: HOME
+                  value: /tmp
+                - name: GIT_CONFIG_GLOBAL
+                  value: /tmp/.gitconfig
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+          volumes:
+            - name: tmp
+              emptyDir: {}
