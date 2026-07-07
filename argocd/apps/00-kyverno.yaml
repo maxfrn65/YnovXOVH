@@ -11,12 +11,37 @@ spec:
   source:
     repoURL: "https://kyverno.github.io/kyverno/"
     chart: kyverno
-    targetRevision: 3.2.6
+    # 3.8.1 = Kyverno v1.18.1, la version installée sur le cluster. Ne pas
+    # rétrograder : les certificats TLS générés par v1.18 (PKCS#8) sont
+    # illisibles par les versions plus anciennes -> rolling update bloqué.
+    targetRevision: 3.8.1
     helm:
       releaseName: kyverno
       values: |
         # TODO (Alexis) : ajuster selon les besoins (admission controller HA, etc.)
         replicaCount: 1
+        # Métriques (Alexandre) : expose kyverno_policy_results_total vers
+        # Prometheus (violations de policies sur le dashboard Grafana).
+        admissionController:
+          serviceMonitor:
+            enabled: true
+        reportsController:
+          serviceMonitor:
+            enabled: true
+        # CronJobs de cleanup désactivés : leur image bitnami/kubectl n'est
+        # plus téléchargeable (retrait des images Bitnami de Docker Hub) ->
+        # ImagePullBackOff. Optionnels sur un cluster de hackathon.
+        cleanupJobs:
+          admissionReports:
+            enabled: false
+          clusterAdmissionReports:
+            enabled: false
+          ephemeralReports:
+            enabled: false
+          clusterEphemeralReports:
+            enabled: false
+          updateRequests:
+            enabled: false
   destination:
     server: "https://kubernetes.default.svc"
     namespace: kyverno
@@ -26,3 +51,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # CRD volumineuses de Kyverno : requis pour éviter "annotation too long"
+      # (cf. guide, étape 6.2 et dépannage).
+      - ServerSideApply=true
