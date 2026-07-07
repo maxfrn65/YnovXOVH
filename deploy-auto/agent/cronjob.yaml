@@ -1,3 +1,4 @@
+---
 # CronJob qui réveille périodiquement l'agent de remédiation.
 #
 # À chaque réveil : un pod démarre, clone le dépôt de manifestes, interroge les
@@ -70,7 +71,13 @@ spec:
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
+                runAsGroup: 10001
+                runAsUser: 10001
                 readOnlyRootFilesystem: true
+                seccompProfile:
+                  type: RuntimeDefault
+                capabilities:
+                  drop: ["ALL"]
           volumes:
             - name: tmp
               emptyDir: {}
