@@ -1,13 +1,3 @@
-# Workload volontairement vulnérable pour la démo :
-# - image obsolète -> CVEs connues détectables par Trivy/Kubescape
-# - conteneur privilégié, root, capability SYS_ADMIN, hostPath -> violations
-#   détectables par Kyverno et déclenchant des alertes runtime Falco
-# - pas de limites de ressources -> non-conformité supplémentaire
-#
-# Objectif : c'est CE fichier que la boucle IA doit corriger via une PR
-# (retirer privileged, runAsUser: 0, la capability, le hostPath, ajouter
-# des limites, monter la version de l'image), puis Argo CD resynchronise
-# automatiquement une fois la PR mergée.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,20 +17,27 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: nginx:1.16.0
+          image: <nouvelle_image_sécurisée>
           securityContext:
-            privileged: true
-            runAsUser: 0
-            allowPrivilegeEscalation: true
-            capabilities:
-              add: ["SYS_ADMIN"]
-          resources: {}
+            privileged: false
+            runAsUser: 10001
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: {}
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           volumeMounts:
             - name: host-root
-              mountPath: /host
+              mountPath: /var/www/html
       volumes:
         - name: host-root
           hostPath:
-            path: /
+            path: /var/www/html
