@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable-webapp
+  namespace: production
+  labels:
+    app: vulnerable-webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vulnerable-webapp
+  template:
+    metadata:
+      labels:
+        app: vulnerable-webapp
+    spec:
+      containers:
+      - name: webapp
+        image: nginx:1.16  # Version vulnérable et obsolète
+        ports:
+        - containerPort: 80
+        securityContext:
+          privileged: true  # Risque de sécurité majeur (privilégié)
+          runAsNonRoot: false  # Tourne en root par défaut
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
